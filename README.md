@@ -1,0 +1,1 @@
+cross-platform tool to detect and do some processing on what is it you typing while actually doing it
